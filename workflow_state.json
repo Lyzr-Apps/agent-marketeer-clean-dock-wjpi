@@ -1,0 +1,25 @@
+{
+  "agents": {
+    "marketing_coordinator": {
+      "agent_id": "6993476350311a64b998bac5",
+      "name": "Marketing Coordinator",
+      "type": "manager"
+    },
+    "content_writer": {
+      "agent_id": "6993473e50311a64b998babe",
+      "name": "Content Writer Agent",
+      "type": "sub-agent"
+    },
+    "seo_analyst": {
+      "agent_id": "6993473e34e9a83c77a88ad7",
+      "name": "SEO Analyst Agent",
+      "type": "sub-agent"
+    },
+    "graphic_designer": {
+      "agent_id": "699347634451bf9cf4bb57a6",
+      "name": "Graphic Designer Agent",
+      "type": "independent",
+      "has_image_output": true
+    }
+  }
+}

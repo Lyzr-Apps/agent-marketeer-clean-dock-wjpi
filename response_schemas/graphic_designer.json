@@ -1,0 +1,33 @@
+{
+  "agent_name": "Graphic Designer Agent",
+  "agent_id": "699347634451bf9cf4bb57a6",
+  "agent_type": "json",
+  "accessor": "json",
+  "has_module_outputs": true,
+  "response_schema": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "GraphicDesignerResponse",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "image_description": {
+            "type": "string",
+            "description": "Description of the generated image"
+          },
+          "design_notes": {
+            "type": "string",
+            "description": "Notes about design choices and how they align with the brief"
+          },
+          "suggested_usage": {
+            "type": "string",
+            "description": "Recommended usage for the generated image (hero, social, email banner)"
+          }
+        },
+        "required": ["image_description", "design_notes", "suggested_usage"],
+        "additionalProperties": false
+      }
+    }
+  }
+}

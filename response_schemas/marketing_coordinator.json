@@ -1,0 +1,79 @@
+{
+  "agent_name": "Marketing Coordinator",
+  "agent_id": "6993476350311a64b998bac5",
+  "agent_type": "json",
+  "accessor": "json",
+  "has_module_outputs": false,
+  "response_schema": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "MarketingCoordinatorResponse",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "package_title": {
+            "type": "string",
+            "description": "Title of the marketing package"
+          },
+          "channel_type": {
+            "type": "string",
+            "description": "The content channel: blog, social, or email"
+          },
+          "content": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string" },
+              "body": { "type": "string" },
+              "meta_description": { "type": "string" },
+              "word_count": { "type": "number" },
+              "key_takeaways": { "type": "array", "items": { "type": "string" } },
+              "cta_text": { "type": "string" },
+              "hashtags": { "type": "array", "items": { "type": "string" } }
+            },
+            "required": ["title", "body", "meta_description", "word_count", "key_takeaways", "cta_text", "hashtags"],
+            "additionalProperties": false
+          },
+          "seo_analysis": {
+            "type": "object",
+            "properties": {
+              "overall_score": { "type": "number" },
+              "meta_title": { "type": "string" },
+              "meta_description": { "type": "string" },
+              "primary_keywords": { "type": "array", "items": { "type": "string" } },
+              "secondary_keywords": { "type": "array", "items": { "type": "string" } },
+              "long_tail_keywords": { "type": "array", "items": { "type": "string" } },
+              "heading_structure": { "type": "array", "items": { "type": "string" } },
+              "keyword_density": { "type": "string" },
+              "readability_score": { "type": "number" },
+              "recommended_word_count": { "type": "number" },
+              "optimization_checklist": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "item": { "type": "string" },
+                    "status": { "type": "string" },
+                    "priority": { "type": "string" }
+                  },
+                  "required": ["item", "status", "priority"],
+                  "additionalProperties": false
+                }
+              },
+              "content_structure_suggestions": { "type": "array", "items": { "type": "string" } },
+              "internal_linking_suggestions": { "type": "array", "items": { "type": "string" } }
+            },
+            "required": ["overall_score", "meta_title", "meta_description", "primary_keywords", "secondary_keywords", "long_tail_keywords", "heading_structure", "keyword_density", "readability_score", "recommended_word_count", "optimization_checklist", "content_structure_suggestions", "internal_linking_suggestions"],
+            "additionalProperties": false
+          },
+          "quality_notes": {
+            "type": "string",
+            "description": "Summary of quality assessment and alignment between content and SEO"
+          }
+        },
+        "required": ["package_title", "channel_type", "content", "seo_analysis", "quality_notes"],
+        "additionalProperties": false
+      }
+    }
+  }
+}

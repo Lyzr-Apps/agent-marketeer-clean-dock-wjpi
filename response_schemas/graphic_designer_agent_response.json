@@ -1,0 +1,26 @@
+{
+  "agent_name": "Graphic Designer Agent",
+  "agent_id": "699347634451bf9cf4bb57a6",
+  "description": "Generates supporting visual assets \u2014 hero images, social media graphics, and email banners \u2014 based on the content theme and creative brief",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "image_description": "string",
+    "design_notes": "string",
+    "suggested_usage": "string"
+  },
+  "example_response": {
+    "image_description": "Description of the generated image",
+    "design_notes": "Notes about design choices and how they align with the brief",
+    "suggested_usage": "Recommended usage for the generated image (hero, social, email banner)"
+  },
+  "has_module_outputs": true,
+  "module_outputs_example": {
+    "artifact_files": [
+      {
+        "file_url": "https://example.com/image.png"
+      }
+    ]
+  }
+}

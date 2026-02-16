@@ -1,0 +1,55 @@
+{
+  "agent_name": "Content Writer Agent",
+  "agent_id": "6993473e50311a64b998babe",
+  "agent_type": "json",
+  "accessor": "json",
+  "has_module_outputs": false,
+  "response_schema": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "ContentWriterResponse",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "The title/headline of the content piece"
+          },
+          "channel_type": {
+            "type": "string",
+            "description": "The channel: blog, social, or email"
+          },
+          "content_body": {
+            "type": "string",
+            "description": "The full generated content with markdown formatting"
+          },
+          "meta_description": {
+            "type": "string",
+            "description": "SEO meta description for the content"
+          },
+          "word_count": {
+            "type": "number",
+            "description": "Approximate word count of the content"
+          },
+          "key_takeaways": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of key takeaways or highlights"
+          },
+          "cta_text": {
+            "type": "string",
+            "description": "The call-to-action text"
+          },
+          "hashtags": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Relevant hashtags for social media"
+          }
+        },
+        "required": ["title", "channel_type", "content_body", "meta_description", "word_count", "key_takeaways", "cta_text", "hashtags"],
+        "additionalProperties": false
+      }
+    }
+  }
+}

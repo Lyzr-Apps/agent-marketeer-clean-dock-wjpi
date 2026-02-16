@@ -1,0 +1,89 @@
+{
+  "agent_name": "SEO Analyst Agent",
+  "agent_id": "6993473e34e9a83c77a88ad7",
+  "agent_type": "json",
+  "accessor": "json",
+  "has_module_outputs": false,
+  "response_schema": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "SEOAnalystResponse",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "overall_seo_score": {
+            "type": "number",
+            "description": "Overall SEO score from 0-100"
+          },
+          "meta_title": {
+            "type": "string",
+            "description": "Suggested meta title under 60 characters"
+          },
+          "meta_description": {
+            "type": "string",
+            "description": "Suggested meta description under 160 characters"
+          },
+          "primary_keywords": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Primary target keywords"
+          },
+          "secondary_keywords": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Secondary/LSI keywords"
+          },
+          "long_tail_keywords": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Long-tail keyword opportunities"
+          },
+          "heading_structure": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Recommended heading structure H1-H3"
+          },
+          "keyword_density_recommendation": {
+            "type": "string",
+            "description": "Recommended keyword density percentage and placement"
+          },
+          "readability_score": {
+            "type": "number",
+            "description": "Target readability score 0-100"
+          },
+          "recommended_word_count": {
+            "type": "number",
+            "description": "Optimal word count for the content"
+          },
+          "optimization_checklist": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "item": { "type": "string" },
+                "status": { "type": "string" },
+                "priority": { "type": "string" }
+              },
+              "required": ["item", "status", "priority"],
+              "additionalProperties": false
+            },
+            "description": "SEO optimization checklist items"
+          },
+          "content_structure_suggestions": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Suggestions for content structure"
+          },
+          "internal_linking_suggestions": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Internal linking recommendations"
+          }
+        },
+        "required": ["overall_seo_score", "meta_title", "meta_description", "primary_keywords", "secondary_keywords", "long_tail_keywords", "heading_structure", "keyword_density_recommendation", "readability_score", "recommended_word_count", "optimization_checklist", "content_structure_suggestions", "internal_linking_suggestions"],
+        "additionalProperties": false
+      }
+    }
+  }
+}

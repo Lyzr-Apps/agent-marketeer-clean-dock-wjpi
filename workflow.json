@@ -1,0 +1,93 @@
+{
+  "workflow": {
+    "nodes": [
+      {
+        "id": "input_node",
+        "type": "Input",
+        "label": "Creative Brief",
+        "nodeCategory": "input"
+      },
+      {
+        "id": "manager_agent",
+        "type": "Agent",
+        "label": "Marketing Coordinator",
+        "nodeCategory": "agent"
+      },
+      {
+        "id": "content_writer_agent",
+        "type": "Agent",
+        "label": "Content Writer Agent",
+        "nodeCategory": "agent"
+      },
+      {
+        "id": "seo_analyst_agent",
+        "type": "Agent",
+        "label": "SEO Analyst Agent",
+        "nodeCategory": "agent"
+      },
+      {
+        "id": "graphic_designer_agent",
+        "type": "Agent",
+        "label": "Graphic Designer Agent",
+        "nodeCategory": "agent"
+      },
+      {
+        "id": "output_node",
+        "type": "Output",
+        "label": "Marketing Package",
+        "nodeCategory": "end"
+      }
+    ],
+    "edges": [
+      { "source": "input_node", "target": "manager_agent" },
+      { "source": "manager_agent", "target": "content_writer_agent" },
+      { "source": "manager_agent", "target": "seo_analyst_agent" },
+      { "source": "manager_agent", "target": "output_node" },
+      { "source": "input_node", "target": "graphic_designer_agent" },
+      { "source": "graphic_designer_agent", "target": "output_node" }
+    ]
+  },
+  "agents": {
+    "marketing_coordinator": {
+      "agent_id": "6993476350311a64b998bac5",
+      "name": "Marketing Coordinator",
+      "type": "manager",
+      "provider": "openai",
+      "model": "gpt-4.1",
+      "temperature": 0.3,
+      "top_p": 1,
+      "managed_agents": ["6993473e50311a64b998babe", "6993473e34e9a83c77a88ad7"]
+    },
+    "content_writer": {
+      "agent_id": "6993473e50311a64b998babe",
+      "name": "Content Writer Agent",
+      "type": "sub-agent",
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-5",
+      "temperature": 0.75,
+      "top_p": 0.95
+    },
+    "seo_analyst": {
+      "agent_id": "6993473e34e9a83c77a88ad7",
+      "name": "SEO Analyst Agent",
+      "type": "sub-agent",
+      "provider": "perplexity",
+      "model": "sonar-pro",
+      "temperature": 0.2,
+      "top_p": 1
+    },
+    "graphic_designer": {
+      "agent_id": "699347634451bf9cf4bb57a6",
+      "name": "Graphic Designer Agent",
+      "type": "independent",
+      "provider": "google",
+      "model": "gemini-2.5-pro",
+      "temperature": 0.7,
+      "top_p": 0.95,
+      "has_image_output": true,
+      "image_output_config": {
+        "model": "gemini/gemini-3-pro-image-preview"
+      }
+    }
+  }
+}

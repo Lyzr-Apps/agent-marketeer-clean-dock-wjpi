@@ -1,0 +1,110 @@
+{
+  "agent_name": "Marketing Coordinator",
+  "agent_id": "6993476350311a64b998bac5",
+  "description": "Orchestrates the content and SEO workflow, distributes the creative brief to sub-agents, and aggregates their outputs into a unified marketing package with content and SEO recommendations",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "package_title": "string",
+    "channel_type": "string",
+    "content": {
+      "title": "string",
+      "body": "string",
+      "meta_description": "string",
+      "word_count": "number",
+      "key_takeaways": [
+        "string"
+      ],
+      "cta_text": "string",
+      "hashtags": [
+        "string"
+      ]
+    },
+    "seo_analysis": {
+      "overall_score": "number",
+      "meta_title": "string",
+      "meta_description": "string",
+      "primary_keywords": [
+        "string"
+      ],
+      "secondary_keywords": [
+        "string"
+      ],
+      "long_tail_keywords": [
+        "string"
+      ],
+      "heading_structure": [
+        "string"
+      ],
+      "keyword_density": "string",
+      "readability_score": "number",
+      "recommended_word_count": "number",
+      "optimization_checklist": [
+        {
+          "item": "string",
+          "status": "string",
+          "priority": "string"
+        }
+      ],
+      "content_structure_suggestions": [
+        "string"
+      ],
+      "internal_linking_suggestions": [
+        "string"
+      ]
+    },
+    "quality_notes": "string"
+  },
+  "example_response": {
+    "package_title": "Title of the marketing package",
+    "channel_type": "The content channel: blog, social, or email",
+    "content": {
+      "title": "sample string",
+      "body": "sample string",
+      "meta_description": "sample string",
+      "word_count": 0,
+      "key_takeaways": [
+        "sample string"
+      ],
+      "cta_text": "sample string",
+      "hashtags": [
+        "sample string"
+      ]
+    },
+    "seo_analysis": {
+      "overall_score": 0,
+      "meta_title": "sample string",
+      "meta_description": "sample string",
+      "primary_keywords": [
+        "sample string"
+      ],
+      "secondary_keywords": [
+        "sample string"
+      ],
+      "long_tail_keywords": [
+        "sample string"
+      ],
+      "heading_structure": [
+        "sample string"
+      ],
+      "keyword_density": "sample string",
+      "readability_score": 0,
+      "recommended_word_count": 0,
+      "optimization_checklist": [
+        {
+          "item": "sample string",
+          "status": "sample string",
+          "priority": "sample string"
+        }
+      ],
+      "content_structure_suggestions": [
+        "sample string"
+      ],
+      "internal_linking_suggestions": [
+        "sample string"
+      ]
+    },
+    "quality_notes": "Summary of quality assessment and alignment between content and SEO"
+  }
+}
