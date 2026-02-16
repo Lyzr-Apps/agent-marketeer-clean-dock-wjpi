@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { callAIAgent } from '@/lib/aiAgent'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -24,8 +24,18 @@ import { RiPaletteLine } from 'react-icons/ri'
 
 // ---- CONSTANTS ----
 const MARKETING_COORDINATOR_ID = '6993476350311a64b998bac5'
+const CONTENT_WRITER_ID = '6993473e50311a64b998babe'
+const SEO_ANALYST_ID = '6993473e34e9a83c77a88ad7'
 const GRAPHIC_DESIGNER_ID = '699347634451bf9cf4bb57a6'
 const HISTORY_KEY = 'mcc_history'
+const WS_BASE_URL = 'wss://metrics.studio.lyzr.ai/ws'
+
+const AGENT_NAME_MAP: Record<string, string> = {
+  [MARKETING_COORDINATOR_ID]: 'Marketing Coordinator',
+  [CONTENT_WRITER_ID]: 'Content Writer',
+  [SEO_ANALYST_ID]: 'SEO Analyst',
+  [GRAPHIC_DESIGNER_ID]: 'Graphic Designer',
+}
 
 // ---- TYPES ----
 interface ContentData {
@@ -96,6 +106,16 @@ interface BriefData {
   keywords: string[]
   tone: string
   notes: string
+}
+
+interface ActivityEvent {
+  id: string
+  timestamp: number
+  agent_id: string
+  agent_name: string
+  event_type: string
+  message: string
+  status: 'running' | 'completed' | 'error' | 'info'
 }
 
 // ---- SAMPLE DATA ----
@@ -409,41 +429,120 @@ function SeoSkeleton() {
   )
 }
 
-function AgentStatusPanel({ activeAgentId, loading }: { activeAgentId: string | null; loading: boolean }) {
+interface AgentStatusPanelProps {
+  activeAgentId: string | null
+  loading: boolean
+  activityLog: ActivityEvent[]
+  wsConnected: boolean
+}
+
+function AgentStatusPanel({ activeAgentId, loading, activityLog, wsConnected }: AgentStatusPanelProps) {
+  const scrollRef = useRef<HTMLDivElement>(null)
   const agents = [
     { id: MARKETING_COORDINATOR_ID, name: 'Marketing Coordinator', role: 'Orchestrates content + SEO workflow', icon: <BsStars className="w-4 h-4" /> },
-    { id: '6993473e50311a64b998babe', name: 'Content Writer', role: 'Generates marketing copy', icon: <HiOutlineDocumentText className="w-4 h-4" /> },
-    { id: '6993473e34e9a83c77a88ad7', name: 'SEO Analyst', role: 'Analyzes and optimizes for search', icon: <HiOutlineChartBar className="w-4 h-4" /> },
+    { id: CONTENT_WRITER_ID, name: 'Content Writer', role: 'Generates marketing copy', icon: <HiOutlineDocumentText className="w-4 h-4" /> },
+    { id: SEO_ANALYST_ID, name: 'SEO Analyst', role: 'Analyzes and optimizes for search', icon: <HiOutlineChartBar className="w-4 h-4" /> },
     { id: GRAPHIC_DESIGNER_ID, name: 'Graphic Designer', role: 'Creates visual assets', icon: <RiPaletteLine className="w-4 h-4" /> },
   ]
+
+  // Determine which agents are active based on WebSocket activity
+  const activeAgents = useMemo(() => {
+    const active = new Set<string>()
+    if (loading && activeAgentId) {
+      active.add(activeAgentId)
+    }
+    // Check recent activity events (last 30 seconds) for running agents
+    const cutoff = Date.now() - 30000
+    activityLog.forEach((evt) => {
+      if (evt.timestamp > cutoff && evt.status === 'running') {
+        active.add(evt.agent_id)
+      }
+    })
+    return active
+  }, [activeAgentId, loading, activityLog])
+
+  // Latest activity message per agent
+  const latestActivity = useMemo(() => {
+    const latest: Record<string, ActivityEvent> = {}
+    activityLog.forEach((evt) => {
+      if (!latest[evt.agent_id] || evt.timestamp > latest[evt.agent_id].timestamp) {
+        latest[evt.agent_id] = evt
+      }
+    })
+    return latest
+  }, [activityLog])
+
+  // Auto-scroll activity log
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
+  }, [activityLog])
 
   return (
     <Card className="bg-card/80 backdrop-blur-sm border-border">
       <CardHeader className="py-3 px-4">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <HiOutlineSparkles className="w-4 h-4 text-primary" />
-          Agent Status
+          Agent Activity
+          {wsConnected && loading && (
+            <span className="ml-auto flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-[9px] text-green-600 font-normal">Live</span>
+            </span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 pb-3 space-y-1.5">
+        {/* Agent list with status */}
         {agents.map((agent) => {
-          const isActive = loading && activeAgentId === agent.id
-          const isManager = loading && activeAgentId === MARKETING_COORDINATOR_ID && (agent.id === '6993473e50311a64b998babe' || agent.id === '6993473e34e9a83c77a88ad7')
+          const isActive = activeAgents.has(agent.id)
+          const latestEvt = latestActivity[agent.id]
+          const isCompleted = latestEvt?.status === 'completed'
+          const hasError = latestEvt?.status === 'error'
           return (
-            <div key={agent.id} className={`flex items-center gap-2.5 py-1.5 px-2 rounded-lg transition-colors ${isActive || isManager ? 'bg-primary/10' : ''}`}>
-              <div className={`flex items-center justify-center w-6 h-6 rounded-md ${isActive || isManager ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
+            <div key={agent.id} className={`flex items-center gap-2.5 py-1.5 px-2 rounded-lg transition-all duration-300 ${isActive ? 'bg-primary/10' : isCompleted ? 'bg-green-500/5' : hasError ? 'bg-destructive/5' : ''}`}>
+              <div className={`flex items-center justify-center w-6 h-6 rounded-md transition-colors ${isActive ? 'bg-primary/20 text-primary' : isCompleted ? 'bg-green-500/15 text-green-600' : hasError ? 'bg-destructive/15 text-destructive' : 'bg-muted text-muted-foreground'}`}>
                 {agent.icon}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">{agent.name}</p>
-                <p className="text-[10px] text-muted-foreground truncate">{agent.role}</p>
+                <p className="text-[10px] text-muted-foreground truncate">
+                  {isActive && latestEvt ? latestEvt.message : agent.role}
+                </p>
               </div>
-              {(isActive || isManager) && (
+              {isActive && (
                 <div className="w-2 h-2 rounded-full bg-primary animate-pulse flex-shrink-0" />
+              )}
+              {!isActive && isCompleted && (
+                <IoCheckmarkCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+              )}
+              {!isActive && hasError && (
+                <IoWarning className="w-3.5 h-3.5 text-destructive flex-shrink-0" />
               )}
             </div>
           )
         })}
+
+        {/* Activity stream */}
+        {activityLog.length > 0 && (
+          <>
+            <Separator className="my-2" />
+            <div ref={scrollRef} className="max-h-[120px] overflow-y-auto space-y-1 scrollbar-thin">
+              {activityLog.slice(-8).map((evt) => (
+                <div key={evt.id} className="flex items-start gap-1.5 py-0.5">
+                  <div className={`w-1 h-1 rounded-full mt-1.5 flex-shrink-0 ${evt.status === 'running' ? 'bg-primary animate-pulse' : evt.status === 'completed' ? 'bg-green-500' : evt.status === 'error' ? 'bg-destructive' : 'bg-muted-foreground'}`} />
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-foreground/70 leading-tight truncate">
+                      <span className="font-medium">{evt.agent_name}: </span>
+                      {evt.message}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   )
@@ -489,6 +588,127 @@ export default function Page() {
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [historySearch, setHistorySearch] = useState('')
   const [historyFilter, setHistoryFilter] = useState<string>('all')
+
+  // WebSocket activity stream
+  const [activityLog, setActivityLog] = useState<ActivityEvent[]>([])
+  const [wsConnected, setWsConnected] = useState(false)
+  const wsRef = useRef<WebSocket | null>(null)
+  const apiKeyRef = useRef<string | null>(null)
+
+  // Fetch API key for WebSocket auth
+  const fetchApiKey = useCallback(async (): Promise<string | null> => {
+    if (apiKeyRef.current) return apiKeyRef.current
+    try {
+      const res = await fetch('/api/lyzr-config')
+      const data = await res.json()
+      if (data.success && data.apiKey) {
+        apiKeyRef.current = data.apiKey
+        return data.apiKey
+      }
+    } catch {
+      // silent
+    }
+    return null
+  }, [])
+
+  // Generate a client-side session ID
+  const generateSessionId = useCallback((agentId: string): string => {
+    const uuid = crypto.randomUUID?.() ?? generateId()
+    return `${agentId}-${uuid.substring(0, 12)}`
+  }, [])
+
+  // Connect WebSocket for real-time activity
+  const connectActivityWs = useCallback(async (sessionId: string): Promise<void> => {
+    // Close any existing connection
+    if (wsRef.current) {
+      wsRef.current.close()
+      wsRef.current = null
+    }
+
+    const apiKey = await fetchApiKey()
+    if (!apiKey) return
+
+    const wsUrl = `${WS_BASE_URL}/${sessionId}?x-api-key=${apiKey}`
+
+    try {
+      const ws = new WebSocket(wsUrl)
+      wsRef.current = ws
+
+      ws.onopen = () => {
+        setWsConnected(true)
+      }
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+          // Parse activity event from WebSocket message
+          const agentId = data.agent_id ?? data.agentId ?? ''
+          const agentName = data.agent_name ?? AGENT_NAME_MAP[agentId] ?? 'Agent'
+          const eventType = data.event_type ?? data.type ?? data.event ?? 'activity'
+          const message = data.message ?? data.description ?? data.status ?? data.text ?? eventType
+
+          let status: ActivityEvent['status'] = 'info'
+          const evtLower = eventType.toLowerCase()
+          const msgLower = message.toLowerCase()
+          if (evtLower.includes('start') || evtLower.includes('running') || evtLower.includes('process') || evtLower.includes('delegat')) {
+            status = 'running'
+          } else if (evtLower.includes('complet') || evtLower.includes('finish') || evtLower.includes('done') || evtLower.includes('success')) {
+            status = 'completed'
+          } else if (evtLower.includes('error') || evtLower.includes('fail') || msgLower.includes('error')) {
+            status = 'error'
+          }
+
+          const activityEvent: ActivityEvent = {
+            id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            timestamp: Date.now(),
+            agent_id: agentId,
+            agent_name: agentName,
+            event_type: eventType,
+            message,
+            status,
+          }
+
+          setActivityLog((prev) => [...prev.slice(-49), activityEvent])
+
+          // Update active agent based on WebSocket events
+          if (status === 'running' && agentId) {
+            setActiveAgentId(agentId)
+          }
+        } catch {
+          // ignore unparseable messages
+        }
+      }
+
+      ws.onerror = () => {
+        setWsConnected(false)
+      }
+
+      ws.onclose = () => {
+        setWsConnected(false)
+        wsRef.current = null
+      }
+    } catch {
+      // silent
+    }
+  }, [fetchApiKey])
+
+  // Disconnect WebSocket
+  const disconnectActivityWs = useCallback(() => {
+    if (wsRef.current) {
+      wsRef.current.close()
+      wsRef.current = null
+    }
+    setWsConnected(false)
+  }, [])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close()
+      }
+    }
+  }, [])
 
   // Load history from localStorage
   useEffect(() => {
@@ -546,6 +766,11 @@ export default function Page() {
     setPackageData(null)
     setImages([])
     setImageMeta(null)
+    setActivityLog([])
+
+    // Generate session ID and connect WebSocket before calling agent
+    const sessionId = generateSessionId(MARKETING_COORDINATOR_ID)
+    await connectActivityWs(sessionId)
 
     const message = `Creative Brief:
 Channel: ${brief.channel}
@@ -558,7 +783,7 @@ Additional Notes: ${brief.notes || 'None'}
 Please generate a complete marketing package with optimized content and SEO analysis for this brief.`
 
     try {
-      const result = await callAIAgent(message, MARKETING_COORDINATOR_ID)
+      const result = await callAIAgent(message, MARKETING_COORDINATOR_ID, { session_id: sessionId })
 
       if (result.success) {
         const data = parseAgentData(result)
@@ -617,9 +842,13 @@ Please generate a complete marketing package with optimized content and SEO anal
     } finally {
       setContentLoading(false)
       setActiveAgentId(null)
-      setTimeout(() => setStatusMessage(null), 4000)
+      // Delay WS disconnect so final events can arrive
+      setTimeout(() => {
+        disconnectActivityWs()
+        setStatusMessage(null)
+      }, 4000)
     }
-  }, [brief, history, saveHistory])
+  }, [brief, history, saveHistory, generateSessionId, connectActivityWs, disconnectActivityWs])
 
   // Generate graphics
   const handleGenerateGraphics = useCallback(async () => {
@@ -629,6 +858,11 @@ Please generate a complete marketing package with optimized content and SEO anal
     setErrorMessage(null)
     setStatusMessage('Creating visual assets...')
     setActiveAgentId(GRAPHIC_DESIGNER_ID)
+    setActivityLog([])
+
+    // Generate session ID and connect WebSocket before calling agent
+    const sessionId = generateSessionId(GRAPHIC_DESIGNER_ID)
+    await connectActivityWs(sessionId)
 
     const imagePrompt = `Create a professional marketing graphic for:
 Title: ${packageData.content?.title ?? packageData.package_title}
@@ -640,7 +874,7 @@ Target Audience: ${brief.audience || 'General audience'}
 The graphic should be a hero image suitable for a ${packageData.channel_type} post. Use warm, modern design with clean typography.`
 
     try {
-      const result = await callAIAgent(imagePrompt, GRAPHIC_DESIGNER_ID)
+      const result = await callAIAgent(imagePrompt, GRAPHIC_DESIGNER_ID, { session_id: sessionId })
 
       if (result.success) {
         const artifactFiles = result?.module_outputs?.artifact_files
@@ -685,9 +919,12 @@ The graphic should be a hero image suitable for a ${packageData.channel_type} po
     } finally {
       setImageLoading(false)
       setActiveAgentId(null)
-      setTimeout(() => setStatusMessage(null), 4000)
+      setTimeout(() => {
+        disconnectActivityWs()
+        setStatusMessage(null)
+      }, 4000)
     }
-  }, [packageData, brief, history, saveHistory])
+  }, [packageData, brief, history, saveHistory, generateSessionId, connectActivityWs, disconnectActivityWs])
 
   // Copy content
   const handleCopy = useCallback(async () => {
@@ -796,7 +1033,7 @@ The graphic should be a hero image suitable for a ${packageData.channel_type} po
 
         {/* Agent status */}
         <div className="p-3 border-t border-border">
-          <AgentStatusPanel activeAgentId={activeAgentId} loading={contentLoading || imageLoading} />
+          <AgentStatusPanel activeAgentId={activeAgentId} loading={contentLoading || imageLoading} activityLog={activityLog} wsConnected={wsConnected} />
         </div>
       </aside>
 
